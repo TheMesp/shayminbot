@@ -11,13 +11,13 @@ def log_action(bot, event)
     bot.send_message(747908070838894633, "#{event.author.display_name} typed #{event.message.content}")
 end
 
-bot.command(:echo) do |event, *text|
+bot.command(:echo, description: 'Have shaymin say whatever you say', usage: 's!echo <text to be repeated>') do |event, *text|
     text = text.join(" ").gsub('@','')
     event.respond text
     event.message.delete
 end
 
-bot.command(:insult) do |event, *victim|
+bot.command(:insult, description: 'Generate a spicy insult', usage: 's!insult <victim>') do |event, *victim|
     first_word = %w(
         FUCKING
         SHIT\ EATING
@@ -74,7 +74,7 @@ bot.command(:insult) do |event, *victim|
     (Please don't use this against real people without consent! Use s!praise if you need something kinder)"
 end
 
-bot.command(:praise) do |event, *victim|
+bot.command(:praise, description: 'generate a kind compliment', usage: 's!praise <target>') do |event, *victim|
     first_word = %w(
         TRUSTWORTHY
         POPULAR
