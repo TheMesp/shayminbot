@@ -35,6 +35,8 @@ bot.command(:insult) do |event, *victim|
         REPULSIVE
         DISGUSTING
         EYE\ MELTING
+		OBTUSE
+		INSECURE
     )
     second_word = %w(
         FUCK
@@ -68,8 +70,8 @@ bot.command(:insult) do |event, *victim|
         MONSTER
         friend\ :\)
     )
-    event.respond "#{victim.join(" ")} you are a #{first_word.sample} #{second_word.sample} #{third_word.sample}\n
-    (Please don't take these seriously! Use s!praise if you need something kinder)"
+    event.respond "#{victim.join(" ").gsub('@','')} you are a #{first_word.sample} #{second_word.sample} #{third_word.sample}\n
+    (Please don't use this against real people without consent! Use s!praise if you need something kinder)"
 end
 
 bot.command(:praise) do |event, *victim|
@@ -109,7 +111,7 @@ bot.command(:praise) do |event, *victim|
         FAN
         BESTIE
     )
-    event.respond "#{victim.join(" ")} you are a #{first_word.sample} #{second_word.sample} #{third_word.sample}"
+    event.respond "#{victim.join(" ").gsub('@','')} you are a #{first_word.sample} #{second_word.sample} #{third_word.sample}"
 end
 
 # initial setup
