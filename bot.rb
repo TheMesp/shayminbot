@@ -8,11 +8,12 @@ require_relative 'secrets.rb'
 bot = Discordrb::Commands::CommandBot.new token: DISCORD_TOKEN, client_id: DISCORD_CLIENT, prefix: 's!'
 
 def log_action(bot, event)
-    bot.send_message(747908070838894633, "#{event.author.display_name} typed #{event.message.content}")
+    bot.send_message(747908070838894633, "**#{event.author.display_name}** typed #{event.message.content}")
 end
 
 bot.command(:echo, description: 'Have shaymin say whatever you say', usage: 's!echo <text to be repeated>') do |event, *text|
-    text = text.join(" ").gsub('@','')
+	text = text.join(" ").gsub('@','')
+	log_action(bot, event)
     event.respond text
     event.message.delete
 end
