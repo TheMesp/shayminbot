@@ -11,6 +11,10 @@ def log_action(bot, event)
     bot.send_message(747908070838894633, "**#{event.author.display_name}** typed #{event.message.content}")
 end
 
+bot.command(:hornets, description: 'You know it', usage: 's!hornets') do |event|
+	event.respond "FUCK THE HORNETS"
+end
+
 bot.command(:echo, description: 'Have shaymin say whatever you say', usage: 's!echo <text to be repeated>') do |event, *text|
 	text = text.join(" ").gsub('@','')
 	log_action(bot, event)
@@ -20,6 +24,8 @@ end
 
 bot.command(:insult, description: 'Generate a spicy insult', usage: 's!insult <victim>') do |event, *victim|
     first_word = %w(
+		DISGRUDING
+		DEROGATORY
         FUCKING
         SHIT\ EATING
         ARBITRARY
