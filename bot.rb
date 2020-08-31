@@ -69,7 +69,7 @@ bot.command(:insult, description: 'Generate a spicy insult', usage: 's!insult <v
         KOBOLD
         CREATURE
         MONSTER
-        friend\ :\)
+        HERB
     )
     event.respond "#{victim.join(" ").gsub('@','')} you are a #{first_word.sample} #{second_word.sample} #{third_word.sample}\n
     (Please don't use this against real people without consent! Use s!praise if you need something kinder)"
