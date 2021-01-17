@@ -11,16 +11,17 @@ def log_action(bot, event)
     bot.send_message(747908070838894633, "**#{event.author.display_name}** typed #{event.message.content.gsub('@', '')}")
 end
 
-bot.message(contains: '??') do |event|
+bot.command(:lovesosa, description: 'cheif keef??', usage: 's!lovesosa', aliases: [:sosa]) do |event|
 	event.respond 'love sosa?? cheif keef???'
 end
 
-bot.command(:kid, description: 'Post a wacky image from a cracked kid', usage: 's!kid') do |event|
+bot.command(:kid, description: 'Post a wacky image from a cracked kid', usage: 's!kid') do |event, opt|
 	names = []
 	d = Dir.new("/usr/crackedkids")
 	d.each_child do |filename|
 		names << filename
 	end
+	return "`#{names.size} Cracked Kid images registered`" if opt.eql? "count"
 	img = File.new("/usr/crackedkids/#{names.sample}")
 	bot.send_file(event.message.channel.id, img)
 end
