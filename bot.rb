@@ -15,10 +15,16 @@ bot.command(:hornets, description: 'You know it', usage: 's!hornets') do |event|
 	event.respond "FUCK THE HORNETS"
 end
 
-bot.command(:echo, description: 'Have shaymin say whatever you say', usage: 's!echo <text to be repeated>') do |event, *text|
+bot.command(:echo, description: 'Have shaymin say whatever you say', usage: 's!echo <optional: channel to echo in> <text to be repeated>', min_args: 1) do |event, *text|
+	if text[0] =~ /<#\d{2,}>/
+		channel = text.shift
+		channel_id = channel[/\d{2,}/]
+	else
+		channel_id = event.message.channel.id
+	end
 	text = text.join(" ").gsub('@','')
 	log_action(bot, event)
-    event.respond text
+	bot.send_message(channel_id, text)
     event.message.delete
 end
 
