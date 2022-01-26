@@ -4,6 +4,7 @@
 require 'discordrb'
 require 'json'
 require 'pp'
+require 'sqlite3'
 require_relative 'secrets.rb'
 require_relative 'classes.rb'
 
@@ -17,11 +18,26 @@ bot.command(:hornets, description: 'You know it', usage: 's!hornets') do |event|
 	event.respond "FUCK THE HORNETS"
 end
 
-bot.command(:quotes) do |event, *filter|
-    unless @mutex
-        @mutex = true
-        filter = filter.join(' ')
-        event.respond("Scanning quotes, this can take 15-30 seconds...")
+def opendb
+	return SQLite3::Database.new "/root/discordbots/shayminbot/shaymindb.db"
+end
+
+bot.command(:fillquotes) do |event|
+    if(event.channel.id == 747908070838894633)
+        print "Creating tables..."
+        db = opendb
+        db.execute <<-SQL
+            DROP TABLE IF EXISTS quotes;
+        SQL
+        db.execute <<-SQL
+            CREATE TABLE quotes(
+                link varchar(100) NOT NULL PRIMARY KEY,
+                userid varchar(30),
+                username varchar(30),
+                score integer
+            );
+        SQL
+        event.respond("Reloading quote DB, this may take a long while...")
         quotes_channel = event.server.channels.select{|channel| channel.id == 746958219368202310}
         quotes_channel = quotes_channel.pop
         quotes = []
@@ -35,30 +51,65 @@ bot.command(:quotes) do |event, *filter|
                 break
             end 
         end
-        quotes = quotes.select{|quote| quote.embeds[0]&.author&.name&.include? filter} if filter
-        if quotes.length > 0
-            quotes = quotes.sort_by { |quote| -quote.content.split("#")[1].to_i }
-            description = "Top 10 quotes"
-            description += " by #{filter}" if filter
-            description += "\n"
-            quotes.first(10).each do |quote|
-                description += "#{quote.embeds[0]&.author&.url} by **#{quote.embeds[0]&.author&.name}**\n"
+        # Load in each message individually... please don't murder me ratelimits
+        quotes.each_with_index do |quote, index|
+            link = quote.embeds[0]&.author&.url
+            if link
+                begin
+                    link = link.split('/')
+                    message_id = link.pop
+                    channel_id = link.pop
+                    message_channel = event.server.channels.select{|channel| channel.id == channel_id.to_i}
+                    message_channel = message_channel.pop
+                    unless message_channel.nil?
+                        message = message_channel.load_message(message_id)
+                        db.execute("INSERT INTO quotes VALUES (?,?,?,?)",
+                            [ quote.embeds[0]&.author&.url, message.author.id.to_i, message.author.username, quote.content.split("#")[1].to_i ]
+                        )
+                    else
+                        print("Deleted channel, ignoring")
+                    end
+                rescue Discordrb::Errors::UnknownMessage
+                    print("Deleted message, ignoring")
+                rescue SQLite3::ConstraintException
+                    print("Duped message, ignoring")
+                end
             end
-            @mutex = false
-            event.respond(description)
-        else
-            @mutex = false
-            event.respond("Didn't find any quotes by #{filter.gsub('@','')}. I check what you give as a filter against what Quotebot has as the username, so take a look at that to see if it matches.")
+            event.respond("#{((index.to_f/quotes.length) * 100).truncate(4)}% done") if index % 50 == 0
         end
-        
+        event.respond("All done.")
     else
-        event.respond "Please wait your turn."
+        event.respond("Command disabled in this channel.")
     end
 end
 
-bot.command(:unlock) do |event|
-    @mutex = false
+bot.command(:quotes) do |event, *filter|
+    db = opendb
+    quotes = []
+    unless filter.empty?
+        filter = filter.join(' ')
+        filter_id = filter.split('!').last.to_i
+        db.execute("SELECT * FROM quotes WHERE userid=#{filter_id} ORDER BY score DESC LIMIT 10") do |row|
+            quotes.append({link: row[0], id: row[1], author: row[2], score: row[3]})
+        end
+    else
+        db.execute("SELECT * FROM quotes ORDER BY score DESC LIMIT 10") do |row|
+            quotes.append({link: row[0], id: row[1], author: row[2], score: row[3]})
+        end
+    end
+    if quotes.length > 0
+        description = "Top 10 quotes"
+        description += " by #{filter}" unless filter.empty?
+        description += "\n"
+        quotes.first(10).each do |quote|
+            description += "⭐**#{quote[:score]}**: #{quote[:link]} by **#{quote[:author]}**\n"
+        end
+        event.respond(description)
+    else
+        event.respond("Didn't find any quotes by the given user. You can input a ping or a userid to filter.")
+    end
 end
+
 bot.command(:echo, description: 'Have shaymin say whatever you say', usage: 's!echo <optional: channel to echo in> <text to be repeated>', min_args: 1) do |event, *text|
 	if text[0] =~ /<#\d{2,}>/
 		channel = text.shift
@@ -113,7 +164,6 @@ bot.command(:praise, description: 'generate a kind compliment', usage: 's!praise
 end
 
 # initial setup
-@mutex = false
 bot.run(true)
 puts 'bot active'
 bot.join
