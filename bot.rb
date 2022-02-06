@@ -25,20 +25,10 @@ end
 bot.command(:fillquotes) do |event|
     if(event.channel.id == 747908070838894633)
         print "Creating tables..."
-        db = opendb
-        db.execute <<-SQL
-            DROP TABLE IF EXISTS quotes;
-        SQL
-        db.execute <<-SQL
-            CREATE TABLE quotes(
-                link varchar(100) NOT NULL PRIMARY KEY,
-                userid varchar(30),
-                username varchar(30),
-                score integer
-            );
-        SQL
-        event.respond("Reloading quote DB, this may take a long while...")
+        event.respond("Trying to grab quotes history, this sometimes fails because discord is stupid...")
+        
         quotes_channel = event.server.channels.select{|channel| channel.id == 746958219368202310}
+        print(quotes_channel)
         quotes_channel = quotes_channel.pop
         quotes = []
         next_id = nil
@@ -51,6 +41,19 @@ bot.command(:fillquotes) do |event|
                 break
             end 
         end
+        db = opendb
+        db.execute <<-SQL
+            DROP TABLE IF EXISTS quotes;
+        SQL
+        db.execute <<-SQL
+            CREATE TABLE quotes(
+                link varchar(100) NOT NULL PRIMARY KEY,
+                userid varchar(30),
+                username varchar(30),
+                score integer
+            );
+        SQL
+        event.respond("History obtained. Reloading quote DB, this may take a long while...")
         # Load in each message individually... please don't murder me ratelimits
         quotes.each_with_index do |quote, index|
             link = quote.embeds[0]&.author&.url
