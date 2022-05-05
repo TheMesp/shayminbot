@@ -27,7 +27,7 @@ bot.command(:fillquotes) do |event|
         print "Creating tables..."
         event.respond("Trying to grab quotes history, this sometimes fails because discord is stupid...")
         
-        quotes_channel = event.server.channels.select{|channel| channel.id == 746958219368202310}
+        quotes_channel = event.server.channels.select{|channel| channel.name == 'quotes'}
         print(quotes_channel)
         quotes_channel = quotes_channel.pop
         quotes = []
