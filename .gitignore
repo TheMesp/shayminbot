@@ -1,5 +1,6 @@
 # Protect token
 secrets.rb
+shaymindb.db
 
 *.gem
 *.rbc
