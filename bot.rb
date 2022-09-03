@@ -14,6 +14,12 @@ def log_action(bot, event)
     bot.send_message(747908070838894633, "**#{event.author.display_name}** typed #{event.message.content.gsub('@', '')}")
 end
 
+bot.member_join do |event|
+    bot.send_message(658508426858463234, "#{event.user.display_name} has immigrated to Ocho Nation.")
+end
+bot.member_leave do |event|
+    bot.send_message(658508426858463234, "#{event.user.username} has emigrated from Ocho Nation.")
+end
 bot.command(:hornets, description: 'You know it', usage: 's!hornets') do |event|
 	event.respond "FUCK THE HORNETS"
 end
