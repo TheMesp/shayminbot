@@ -56,6 +56,7 @@ bot.command(:fillquotes) do |event|
                 link varchar(100) NOT NULL PRIMARY KEY,
                 userid varchar(30),
                 username varchar(30),
+                channelid varchar(30),
                 score integer
             );
         SQL
@@ -72,8 +73,8 @@ bot.command(:fillquotes) do |event|
                     message_channel = message_channel.pop
                     unless message_channel.nil?
                         message = message_channel.load_message(message_id)
-                        db.execute("INSERT INTO quotes VALUES (?,?,?,?)",
-                            [ quote.embeds[0]&.author&.url, message.author.id.to_i, message.author.username, quote.content.split("#")[1].to_i ]
+                        db.execute("INSERT INTO quotes VALUES (?,?,?,?,?)",
+                            [ quote.embeds[0]&.author&.url, message.author.id.to_i, message.author.username, message_channel.id.to_i, quote.content.split("#")[1].to_i ]
                         )
                     else
                         print("Deleted channel, ignoring")
@@ -92,30 +93,40 @@ bot.command(:fillquotes) do |event|
     end
 end
 
-bot.command(:quotes) do |event, *filter|
+bot.register_application_command(:quotes, 'Funny quotes! :-)') do |cmd|
+    cmd.user('user', 'user to filter by')
+    cmd.channel('channel', 'channel to filter by')
+end
+
+bot.application_command(:quotes) do |event|
+    user_id = event.options['user'] ? event.options['user'] : '%'
+    user = nil
+    if event.options['user']
+        user = event.server.member(event.options['user'])
+    end
+    channel_id = event.options['channel'] ? event.options['channel'] : '%'
+    channel = nil
+    if event.options['channel']
+        channel = event.server.channels.select{|server_channel| server_channel.id == channel_id.to_i}
+        channel = channel.pop
+    end
+
     db = opendb
     quotes = []
-    unless filter.empty?
-        filter = filter.join(' ')
-        filter_id = filter.split('!').last.to_i
-        db.execute("SELECT * FROM quotes WHERE userid=#{filter_id} ORDER BY score DESC LIMIT 10") do |row|
-            quotes.append({link: row[0], id: row[1], author: row[2], score: row[3]})
-        end
-    else
-        db.execute("SELECT * FROM quotes ORDER BY score DESC LIMIT 10") do |row|
-            quotes.append({link: row[0], id: row[1], author: row[2], score: row[3]})
-        end
+    db.execute("SELECT * FROM quotes WHERE userid LIKE '#{user_id}' AND channelid LIKE '#{channel_id}' ORDER BY score DESC LIMIT 10") do |row|
+        quotes.append({link: row[0], id: row[1], author: row[2], score: row[4]})
     end
     if quotes.length > 0
         description = "Top 10 quotes"
-        description += " by #{filter}" unless filter.empty?
+        description += " by #{user.display_name}" unless user.nil?
+        description += " in #{channel.name}" unless channel.nil?
         description += "\n"
         quotes.first(10).each do |quote|
             description += "⭐**#{quote[:score]}**: #{quote[:link]} by **#{quote[:author]}**\n"
         end
-        event.respond(description)
+        event.respond(content: description)
     else
-        event.respond("Didn't find any quotes by the given user. You can input a ping or a userid to filter.")
+        event.respond(content: "Didn't find any quotes matching the given parameters.", ephemeral: true)
     end
 end
 
