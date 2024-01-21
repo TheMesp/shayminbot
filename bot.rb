@@ -15,10 +15,10 @@ def log_action(bot, event)
 end
 
 bot.member_join do |event|
-    bot.send_message(658508426858463234, "#{event.user.display_name} has immigrated to Ocho Nation.")
+    bot.send_message(658508426858463234, "<@#{event.user.id}> has immigrated to Ocho Nation.")
 end
 bot.member_leave do |event|
-    bot.send_message(658508426858463234, "#{event.user.username} has emigrated from Ocho Nation.")
+    bot.send_message(658508426858463234, "<@#{event.user.id}> has emigrated from Ocho Nation.")
 end
 bot.command(:hornets, description: 'You know it', usage: 's!hornets') do |event|
 	event.respond "FUCK THE HORNETS"
@@ -183,6 +183,10 @@ bot.command(:praise, description: 'generate a kind compliment', usage: 's!praise
     event.respond "#{victim.join(" ").gsub('@','')} you are a #{first_word.sample} #{second_word.sample} #{third_word.sample}"
 end
 
+bot.message(in: ['fb-marketplace'], contains: "www.facebook.com") do |event|
+ 	event.message.react("👍")
+    event.message.react("👎")
+end
 # initial setup
 bot.run(true)
 puts 'bot active'
